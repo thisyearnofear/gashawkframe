@@ -1,0 +1,20 @@
+{
+  "name": "gashawk-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "frog vercel-build",
+    "dev": "frog dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "axios": "latest",
+    "frog": "latest",
+    "hono": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest",
+    "vercel": "^37.14.0"
+  }
+}
