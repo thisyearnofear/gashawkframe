@@ -51,7 +51,8 @@ export const app = new Frog({
   title: "GasHawk Savings Calculator",
   hub: neynar({ apiKey: process.env.NEYNAR_API_KEY || "" }),
   secret: process.env.FROG_SECRET || "",
-  browserLocation: "/:path",
+  browserLocation: "https://app.gashawk.io",
+  verify: true,
 });
 
 // Main frame logic

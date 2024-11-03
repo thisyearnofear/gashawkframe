@@ -23,9 +23,7 @@ yarn-error.log*
 # env
 .env
 
-# vercel
-vercel.json
-.vercel
+
 
 # frog
 .frog   

@@ -8,5 +8,15 @@
             "maxDuration": 10
         }
     },
-    "installCommand": "npm install"
+    "installCommand": "npm install",
+    "rewrites": [
+        {
+            "source": "/api",
+            "destination": "/api"
+        },
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        }
+    ]
 }
