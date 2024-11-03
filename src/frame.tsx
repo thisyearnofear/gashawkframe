@@ -1,28 +1,21 @@
 import { Button, Frog, TextInput } from "frog";
+import { neynar } from "frog/hubs";
 import axios from "axios";
-import { devtools } from "frog/dev";
-import { serveStatic } from "frog/serve-static";
 import "dotenv/config";
 
+// Interfaces
 interface Transaction {
   gasUsed: string;
   gasPrice: string;
 }
 
+// Constants
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 const ETHERSCAN_API_URL = "https://api.etherscan.io/api";
 const COINGECKO_API_URL = "https://api.coingecko.com/api/v3";
 const EXAMPLE_ADDRESS = "0xD7029BDEa1c17493893AAfE29AAD69EF892B8ff2";
 
-export const app = new Frog({
-  title: "Gas Savings Calculator",
-  imageOptions: {
-    width: 1200,
-    height: 630,
-  },
-});
-
-// Add the ENS resolution function
+// ENS Resolution Function
 const resolveENSNameFallback = async (input: string): Promise<string> => {
   // If input is already an Ethereum address, return it
   if (input.match(/^0x[a-fA-F0-9]{40}$/i)) {
@@ -52,6 +45,16 @@ const resolveENSNameFallback = async (input: string): Promise<string> => {
   );
 };
 
+// Initialize Frog app
+export const app = new Frog({
+  basePath: "/api",
+  title: "GasHawk Savings Calculator",
+  hub: neynar({ apiKey: process.env.NEYNAR_API_KEY || "" }),
+  secret: process.env.FROG_SECRET || "",
+  browserLocation: "/:path",
+});
+
+// Main frame logic
 app.frame("/", async (c) => {
   const { buttonValue, inputText, status } = c;
 
@@ -101,8 +104,8 @@ app.frame("/", async (c) => {
     });
   }
 
-  // Learn flow - What is GasHawk
-  if (buttonValue === "learn") {
+  // Calculate flow - Input screen
+  if (buttonValue === "calculate") {
     return c.res({
       image: (
         <div
@@ -126,7 +129,7 @@ app.frame("/", async (c) => {
               textAlign: "center",
             }}
           >
-            How GasHawk Works 🚀
+            Enter Your Address 🔍
           </div>
           <div
             style={{
@@ -134,127 +137,21 @@ app.frame("/", async (c) => {
               color: "#a0a0a0",
               textAlign: "center",
               maxWidth: "80%",
-              lineHeight: "1.5",
             }}
           >
-            GasHawk predicts optimal transaction timing and protects against MEV
-            attacks
+            ETH address or ENS name
           </div>
         </div>
       ),
       intents: [
-        <Button value="learn_2">Next: Features</Button>,
-        <Button value="calculate">Skip to Calculator</Button>,
+        <TextInput placeholder="vitalik.eth or 0x..." />,
+        <Button value="check">Check Savings</Button>,
+        <Button value="example">Use Example Address</Button>,
       ],
     });
   }
 
-  // Learn flow - Features
-  if (buttonValue === "learn_2") {
-    return c.res({
-      image: (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#1a1a1a",
-            width: "100%",
-            height: "100%",
-            padding: "40px",
-            color: "white",
-            fontFamily: "Inter",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "36px",
-              marginBottom: "24px",
-              textAlign: "center",
-            }}
-          >
-            Key Features ✨
-          </div>
-          <div
-            style={{
-              fontSize: "24px",
-              color: "#22c55e",
-              marginBottom: "16px",
-              textAlign: "center",
-            }}
-          >
-            • Non-custodial & MEV-resistant
-          </div>
-          <div
-            style={{
-              fontSize: "24px",
-              color: "#22c55e",
-              marginBottom: "16px",
-              textAlign: "center",
-            }}
-          >
-            • Custom transaction deadlines
-          </div>
-          <div
-            style={{ fontSize: "24px", color: "#22c55e", textAlign: "center" }}
-          >
-            • Flashbots Protect integration
-          </div>
-        </div>
-      ),
-      intents: [
-        <Button value="calculate">Calculate Your Savings</Button>,
-        <Button.Link href="https://app.gashawk.io/#/setup?refCode=JQW-AWY">
-          Learn More
-        </Button.Link>,
-      ],
-    });
-  }
-
-  // Calculator input screen
-  if (buttonValue === "calculate" && !inputText) {
-    return c.res({
-      image: (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#1a1a1a",
-            width: "100%",
-            height: "100%",
-            padding: "40px",
-            color: "white",
-            fontFamily: "Inter",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "36px",
-              marginBottom: "20px",
-              textAlign: "center",
-            }}
-          >
-            Calculate Your Savings 📊
-          </div>
-          <div
-            style={{ fontSize: "24px", color: "#a0a0a0", textAlign: "center" }}
-          >
-            Enter your address or try our demo
-          </div>
-        </div>
-      ),
-      intents: [
-        <TextInput placeholder="0x... or .eth" />,
-        <Button value="check">Calculate Savings</Button>,
-        <Button value="example">Try Demo (dwr.eth))</Button>,
-      ],
-    });
-  }
-
-  // Handle address calculation
+  // Handle address resolution
   let resolvedAddress: string | null = null;
 
   if (buttonValue === "example") {
@@ -307,12 +204,12 @@ app.frame("/", async (c) => {
     }
   }
 
+  // Calculate savings if we have a resolved address
   if (
     (buttonValue === "check" || buttonValue === "example") &&
     resolvedAddress
   ) {
     try {
-      // API calls and calculations using resolvedAddress instead of address
       const txResponse = await axios.get(ETHERSCAN_API_URL, {
         params: {
           module: "account",
@@ -507,4 +404,3 @@ app.frame("/", async (c) => {
     intents: [<Button.Reset>Try Again</Button.Reset>],
   });
 });
-devtools(app, { serveStatic });
