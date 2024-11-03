@@ -1,7 +1,6 @@
 import { Button, Frog, TextInput } from "frog";
 import { neynar } from "frog/hubs";
 import axios from "axios";
-import "dotenv/config";
 
 // Interfaces
 interface Transaction {
